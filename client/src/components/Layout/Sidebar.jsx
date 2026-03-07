@@ -38,9 +38,9 @@ const Sidebar = ({ isOpen }) => {
             to={item.path}
             className={({ isActive }) => `
               flex items-center gap-3 px-3 py-3 rounded-lg mb-1
-              transition-colors duration-150 text-sm font-medium
+              transition-colors duration-150 text-sm font-medium text-black
               ${isActive
-                ? 'bg-primary-600 text-white'
+                ? 'bg-primary-600 text-black'
                 : 'text-blue-200 hover:bg-blue-800 hover:text-white'}
             `}
           >
