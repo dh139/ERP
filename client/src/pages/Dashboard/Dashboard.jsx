@@ -10,68 +10,110 @@ import {
 } from 'recharts';
 
 // ── Helpers ───────────────────────────────────────────────
-const fmt = (n) => n >= 100000
-  ? `₹${(n/100000).toFixed(1)}L`
-  : n >= 1000
-  ? `₹${(n/1000).toFixed(1)}K`
-  : `₹${(n||0).toLocaleString()}`;
-
-const pct = (n) => `${n > 0 ? '+' : ''}${n}%`;
-
-const COLORS = ['#2563EB','#16A34A','#DC2626','#D97706','#7C3AED','#0891B2','#DB2777'];
-
-// ── Stat Card ─────────────────────────────────────────────
-const KPICard = ({ icon, label, value, sub, subColor = 'text-gray-400', color = 'blue' }) => {
-  const bg = {
-    blue:   'from-blue-500 to-blue-600',
-    green:  'from-green-500 to-green-600',
-    red:    'from-red-500 to-red-600',
-    purple: 'from-purple-500 to-purple-600',
-    orange: 'from-orange-500 to-orange-600',
-    teal:   'from-teal-500 to-teal-600',
-  }[color] || 'from-blue-500 to-blue-600';
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between mb-3">
-        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${bg} flex items-center justify-center text-xl shadow-sm`}>
-          {icon}
-        </div>
-        {sub && <span className={`text-xs font-semibold px-2 py-1 rounded-full ${subColor}`}>{sub}</span>}
-      </div>
-      <p className="text-2xl font-bold text-gray-800 mb-1">{value ?? '—'}</p>
-      <p className="text-xs text-gray-400 font-medium">{label}</p>
-    </div>
-  );
+const fmt = (n) => {
+  if (!n && n !== 0) return '—';
+  if (n >= 10000000) return `₹${(n/10000000).toFixed(1)}Cr`;
+  if (n >= 100000)   return `₹${(n/100000).toFixed(1)}L`;
+  if (n >= 1000)     return `₹${(n/1000).toFixed(1)}K`;
+  return `₹${n.toLocaleString()}`;
 };
-
-// ── Section Header ────────────────────────────────────────
-const SectionHeader = ({ title, subtitle }) => (
-  <div className="mb-4">
-    <h2 className="text-base font-bold text-gray-800">{title}</h2>
-    {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
-  </div>
-);
+const pct = (n) => `${Number(n) > 0 ? '+' : ''}${n}%`;
+const COLORS = ['#FFD966','#FF6B35','#0EA5E9','#16A34A','#8B5CF6','#EC4899','#0891B2'];
 
 // ── Custom Tooltip ────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-lg p-3 text-sm">
-      <p className="font-bold text-gray-700 mb-2">{label}</p>
+    <div style={{
+      background: '#0A0A0A', border: '1.5px solid #2A2A2A',
+      borderRadius: 12, padding: '12px 16px', fontFamily: "'DM Sans', sans-serif",
+      boxShadow: '0 16px 40px rgba(0,0,0,0.4)',
+    }}>
+      <p style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 12, color: '#FFD966', marginBottom: 8, letterSpacing: '0.05em' }}>
+        {label}
+      </p>
       {payload.map((p, i) => (
-        <p key={i} style={{ color: p.color }} className="font-medium">
-          {p.name}: {p.name === 'Orders' ? p.value : fmt(p.value)}
+        <p key={i} style={{ fontSize: 13, color: '#CCC', marginBottom: 3, display: 'flex', justifyContent: 'space-between', gap: 20 }}>
+          <span style={{ color: '#666' }}>{p.name}</span>
+          <span style={{ color: 'white', fontWeight: 700 }}>
+            {p.name === 'Orders' ? p.value : fmt(p.value)}
+          </span>
         </p>
       ))}
     </div>
   );
 };
 
+// ── KPI Card ──────────────────────────────────────────────
+const KPICard = ({ icon, label, value, sub, accent = '#FFD966', delay = 0 }) => (
+  <div style={{
+    background: 'white', border: '2px solid #F0F0EB', borderRadius: 16,
+    padding: '24px 22px', position: 'relative', overflow: 'hidden',
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    animation: `fadeUp 0.5s ease both`,
+    animationDelay: `${delay}ms`,
+  }}
+    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 40px rgba(0,0,0,0.1)'; }}
+    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+  >
+    {/* Top accent line */}
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, borderRadius: '14px 14px 0 0' }} />
+
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ width: 44, height: 44, background: '#0A0A0A', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+        {icon}
+      </div>
+      {sub !== null && sub !== undefined && (
+        <span style={{
+          fontFamily: 'DM Sans', fontSize: 11, fontWeight: 700,
+          background: '#F4F4F0', color: '#666', padding: '4px 10px', borderRadius: 100,
+          border: '1.5px solid #E8E8E3',
+        }}>{sub}</span>
+      )}
+    </div>
+    <p style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: '#0A0A0A', margin: '16px 0 4px', letterSpacing: '-0.025em', lineHeight: 1 }}>
+      {value ?? '—'}
+    </p>
+    <p style={{ fontFamily: 'DM Sans', fontSize: 12, color: '#999', fontWeight: 500 }}>{label}</p>
+  </div>
+);
+
+// ── Section Header ────────────────────────────────────────
+const SectionHeader = ({ title, subtitle, action }) => (
+  <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 20 }}>
+    <div>
+      <h2 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 16, color: '#0A0A0A', letterSpacing: '-0.01em' }}>{title}</h2>
+      {subtitle && <p style={{ fontFamily: 'DM Sans', fontSize: 12, color: '#AAA', marginTop: 3 }}>{subtitle}</p>}
+    </div>
+    {action}
+  </div>
+);
+
+// ── Chart Wrapper ─────────────────────────────────────────
+const ChartCard = ({ children, style = {} }) => (
+  <div style={{
+    background: 'white', border: '2px solid #F0F0EB', borderRadius: 20,
+    padding: '28px 28px 20px', ...style,
+  }}>
+    {children}
+  </div>
+);
+
+// ── Empty Chart State ─────────────────────────────────────
+const EmptyChart = ({ message, height = 220 }) => (
+  <div style={{
+    height, display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', gap: 8,
+  }}>
+    <div style={{ fontSize: 32, opacity: 0.2 }}>📊</div>
+    <p style={{ fontFamily: 'DM Sans', fontSize: 13, color: '#CCC' }}>{message}</p>
+  </div>
+);
+
 // ── Main Dashboard ────────────────────────────────────────
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const { stats, revenueChart, salesTrend, topProducts, loading } = useSelector(s => s.dashboard);
+  const { stats, revenueChart, salesTrend, topProducts } = useSelector(s => s.dashboard);
   const { user } = useSelector(s => s.auth);
 
   useEffect(() => {
@@ -81,10 +123,10 @@ const Dashboard = () => {
     dispatch(fetchTopProducts());
   }, [dispatch]);
 
-  const ac = stats?.accounting || {};
-  const cr = stats?.crm        || {};
-  const inv= stats?.inventory  || {};
-  const hr = stats?.hr         || {};
+  const ac  = stats?.accounting || {};
+  const cr  = stats?.crm        || {};
+  const inv = stats?.inventory  || {};
+  const hr  = stats?.hr         || {};
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -94,207 +136,290 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div style={{ fontFamily: "'Syne', sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between">
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        .dash-section { animation: fadeUp 0.5s ease both; }
+        .quick-action-btn {
+          display: flex; align-items: center; gap: 12px;
+          padding: 14px 16px;
+          background: white; border: 2px solid #F0F0EB; border-radius: 14px;
+          cursor: pointer; transition: all 0.18s; text-decoration: none;
+        }
+        .quick-action-btn:hover {
+          background: #0A0A0A; border-color: #0A0A0A;
+          transform: translateY(-3px);
+          box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+        }
+        .quick-action-btn:hover .qa-label { color: white; }
+        .quick-action-btn:hover .qa-icon-wrap { background: #FFD966; }
+
+        .alert-card {
+          display: flex; align-items: flex-start; gap: 16px;
+          border-radius: 16px; padding: 20px 22px;
+          animation: fadeUp 0.5s ease both;
+        }
+        .alert-btn {
+          padding: 9px 20px; border: none; border-radius: 8px;
+          font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+          cursor: pointer; flex-shrink: 0; transition: opacity 0.15s;
+          text-decoration: none; display: inline-block;
+        }
+        .alert-btn:hover { opacity: 0.85; }
+      `}</style>
+
+      {/* ── Page Header ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 36, animation: 'fadeUp 0.4s ease both' }}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            {greeting()}, {user?.name?.split(' ')[0]} 👋
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#FFF8E7', border: '1.5px solid #FFD966', borderRadius: 100, padding: '5px 14px', marginBottom: 14 }}>
+            <div style={{ width: 7, height: 7, background: '#16A34A', borderRadius: '50%', animation: 'pulse-dot 2s infinite' }}></div>
+            <span style={{ fontFamily: 'DM Sans', fontSize: 11, fontWeight: 600, color: '#92600A' }}>All systems operational</span>
+          </div>
+          <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 30, letterSpacing: '-0.025em', color: '#0A0A0A', lineHeight: 1.1 }}>
+            {greeting()},{' '}
+            <span style={{ position: 'relative', display: 'inline-block' }}>
+              <span style={{ position: 'relative', zIndex: 1 }}>{user?.name?.split(' ')[0] || 'Admin'} 👋</span>
+              <span style={{ position: 'absolute', bottom: 2, left: -2, right: -2, height: '35%', background: '#FFD966', zIndex: 0, borderRadius: 3 }}></span>
+            </span>
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
-            {new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}
+          <p style={{ fontFamily: 'DM Sans', fontSize: 13, color: '#AAA', marginTop: 6 }}>
+            {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-          <span className="text-xs font-semibold text-green-700">All Systems Live</span>
+
+        {/* Live badge */}
+        <div style={{ background: '#0A0A0A', borderRadius: 14, padding: '14px 22px', textAlign: 'right' }}>
+          <p style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 11, color: '#FFD966', letterSpacing: '0.08em', marginBottom: 4 }}>NEXUS ERP</p>
+          <p style={{ fontFamily: 'DM Sans', fontSize: 12, color: '#666' }}>
+            {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+          </p>
         </div>
       </div>
 
       {/* ── Finance KPIs ── */}
-      <div>
-        <SectionHeader title="💰 Finance Overview" subtitle="Revenue, expenses and profit summary" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard icon="💵" label="Total Revenue"      color="green"  value={fmt(ac.totalRevenue)}
-            sub={ac.revenueGrowth ? pct(ac.revenueGrowth) : null}
-            subColor={ac.revenueGrowth >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'} />
-          <KPICard icon="📤" label="Total Expenses"     color="red"    value={fmt(ac.totalExpenses)} />
-          <KPICard icon="📈" label="Net Profit"         color="blue"   value={fmt(ac.netProfit)}
-            sub={ac.netProfit >= 0 ? 'Profitable' : 'Net Loss'}
-            subColor={ac.netProfit >= 0 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'} />
-          <KPICard icon="🔴" label="Overdue Invoices"   color="orange" value={ac.overdueCount ?? '—'}
-            sub={ac.pendingExpenses ? `${ac.pendingExpenses} exp. pending` : null}
-            subColor="bg-orange-100 text-orange-700" />
+      <div className="dash-section" style={{ animationDelay: '0.05s', marginBottom: 28 }}>
+        <SectionHeader
+          title="💰 Finance Overview"
+          subtitle="Revenue, expenses and net profit"
+          action={
+            <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 11, color: '#AAA', letterSpacing: '0.06em' }}>
+              ACCOUNTING MODULE
+            </span>
+          }
+        />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          <KPICard icon="💵" label="Total Revenue"    accent="#16A34A" delay={0}
+            value={fmt(ac.totalRevenue)}
+            sub={ac.revenueGrowth ? pct(ac.revenueGrowth) : null} />
+          <KPICard icon="📤" label="Total Expenses"   accent="#DC2626" delay={60}
+            value={fmt(ac.totalExpenses)} />
+          <KPICard icon="📈" label="Net Profit"       accent="#2563EB" delay={120}
+            value={fmt(ac.netProfit)}
+            sub={ac.netProfit >= 0 ? '✓ Profitable' : '↓ Net Loss'} />
+          <KPICard icon="🔴" label="Overdue Invoices" accent="#FF6B35" delay={180}
+            value={ac.overdueCount ?? '0'}
+            sub={ac.pendingExpenses ? `${ac.pendingExpenses} exp. pending` : null} />
         </div>
       </div>
 
-      {/* ── CRM + Inventory + HR KPIs ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard icon="🛒" label="This Month Orders"   color="blue"   value={cr.monthOrders ?? '—'}
-          sub={`${cr.totalOrders ?? 0} total`} subColor="bg-blue-50 text-blue-500" />
-        <KPICard icon="👥" label="Active Customers"    color="teal"   value={cr.totalCustomers ?? '—'}
-          sub={`${cr.totalLeads ?? 0} active leads`} subColor="bg-teal-50 text-teal-600" />
-        <KPICard icon="📦" label="Low Stock Items"     color="red"    value={inv.lowStockCount ?? '—'}
-          sub={`${inv.totalProducts ?? 0} products`} subColor="bg-red-50 text-red-500" />
-        <KPICard icon="👤" label="Employees"           color="purple" value={hr.totalEmployees ?? '—'}
-          sub={hr.monthlyPayroll ? `₹${Math.round(hr.monthlyPayroll/1000)}K payroll` : null}
-          subColor="bg-purple-50 text-purple-600" />
+      {/* ── Operations KPIs ── */}
+      <div className="dash-section" style={{ animationDelay: '0.1s', marginBottom: 28 }}>
+        <SectionHeader
+          title="⚙️ Operations Overview"
+          subtitle="CRM, inventory and HR at a glance"
+        />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          <KPICard icon="🛒" label="This Month Orders"  accent="#0EA5E9" delay={0}
+            value={cr.monthOrders ?? '0'}
+            sub={`${cr.totalOrders ?? 0} total orders`} />
+          <KPICard icon="👥" label="Active Customers"   accent="#8B5CF6" delay={60}
+            value={cr.totalCustomers ?? '0'}
+            sub={`${cr.totalLeads ?? 0} active leads`} />
+          <KPICard icon="📦" label="Low Stock Items"    accent="#DC2626" delay={120}
+            value={inv.lowStockCount ?? '0'}
+            sub={`${inv.totalProducts ?? 0} products total`} />
+          <KPICard icon="👤" label="Employees"          accent="#FFD966" delay={180}
+            value={hr.totalEmployees ?? '0'}
+            sub={hr.monthlyPayroll ? `${fmt(hr.monthlyPayroll)} payroll` : null} />
+        </div>
       </div>
 
       {/* ── Revenue vs Expenses Chart ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <SectionHeader
-          title="📊 Revenue vs Expenses"
-          subtitle="Last 6 months financial performance" />
-        {revenueChart.length === 0 ? (
-          <div className="h-64 flex items-center justify-center text-gray-300 text-sm">
-            No data yet — add invoices and expenses to see chart
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={revenueChart} barGap={4} barCategoryGap="30%">
-              <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-              <YAxis tickFormatter={v => v >= 1000 ? `₹${v/1000}K` : `₹${v}`} tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} width={60} />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
-              <Bar dataKey="revenue"  name="Revenue"  fill="#2563EB" radius={[6,6,0,0]} />
-              <Bar dataKey="expenses" name="Expenses" fill="#FCA5A5" radius={[6,6,0,0]} />
-              <Bar dataKey="profit"   name="Profit"   fill="#16A34A" radius={[6,6,0,0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-
-      {/* ── Sales Trend + Top Products ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Sales Trend */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="dash-section" style={{ animationDelay: '0.15s', marginBottom: 28 }}>
+        <ChartCard>
           <SectionHeader
-            title="📦 Sales Orders Trend"
-            subtitle="Order volume last 6 months" />
-          {salesTrend.length === 0 ? (
-            <div className="h-52 flex items-center justify-center text-gray-300 text-sm">
-              No orders yet
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={salesTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                <YAxis yAxisId="left"  tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                <YAxis yAxisId="right" orientation="right"
-                  tickFormatter={v => v >= 1000 ? `₹${v/1000}K` : `₹${v}`}
-                  tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
-                <Line yAxisId="left"  type="monotone" dataKey="orders" name="Orders"
-                  stroke="#2563EB" strokeWidth={2.5} dot={{ r: 4, fill: '#2563EB' }}
-                  activeDot={{ r: 6 }} />
-                <Line yAxisId="right" type="monotone" dataKey="value"  name="Value"
-                  stroke="#16A34A" strokeWidth={2.5} dot={{ r: 4, fill: '#16A34A' }}
-                  activeDot={{ r: 6 }} strokeDasharray="5 5" />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        {/* Top Products */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <SectionHeader
-            title="🏆 Top Selling Products"
-            subtitle="By quantity sold" />
-          {topProducts.length === 0 ? (
-            <div className="h-52 flex items-center justify-center flex-col gap-3">
-              <p className="text-gray-300 text-sm">No sales data yet</p>
-              <p className="text-gray-300 text-xs">Create sales orders to see top products</p>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4">
-              <ResponsiveContainer width="55%" height={200}>
-                <PieChart>
-                  <Pie data={topProducts} cx="50%" cy="50%" innerRadius={50} outerRadius={80}
-                    dataKey="quantity" paddingAngle={3}>
-                    {topProducts.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v, n) => [v + ' units', n]} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex-1 space-y-2 overflow-auto max-h-52">
-                {topProducts.map((p, i) => (
-                  <div key={i} className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: COLORS[i % COLORS.length] }}></div>
-                      <span className="text-xs text-gray-600 truncate">{p.name}</span>
-                    </div>
-                    <span className="text-xs font-bold text-gray-800 flex-shrink-0">{p.quantity} units</span>
+            title="📊 Revenue vs Expenses"
+            subtitle="Last 6 months financial performance"
+            action={
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[['Revenue','#2563EB'],['Expenses','#FCA5A5'],['Profit','#16A34A']].map(([l,c]) => (
+                  <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, background: c }}></div>
+                    <span style={{ fontFamily: 'DM Sans', fontSize: 11, color: '#999' }}>{l}</span>
                   </div>
                 ))}
               </div>
-            </div>
+            }
+          />
+          {!revenueChart?.length ? (
+            <EmptyChart message="Add invoices & expenses to see performance chart" height={280} />
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={revenueChart} barGap={3} barCategoryGap="32%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F0" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontFamily: 'DM Sans', fontSize: 12, fill: '#BBB' }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={v => v >= 1000 ? `₹${v/1000}K` : `₹${v}`} tick={{ fontFamily: 'DM Sans', fontSize: 11, fill: '#BBB' }} axisLine={false} tickLine={false} width={58} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
+                <Bar dataKey="revenue"  name="Revenue"  fill="#0A0A0A" radius={[6,6,0,0]} />
+                <Bar dataKey="expenses" name="Expenses" fill="#E8E8E3" radius={[6,6,0,0]} />
+                <Bar dataKey="profit"   name="Profit"   fill="#FFD966" radius={[6,6,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
           )}
+        </ChartCard>
+      </div>
+
+      {/* ── Sales Trend + Top Products ── */}
+      <div className="dash-section" style={{ animationDelay: '0.2s', marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
+
+          {/* Sales Trend */}
+          <ChartCard>
+            <SectionHeader title="📦 Sales Orders Trend" subtitle="Order volume & value — last 6 months" />
+            {!salesTrend?.length ? (
+              <EmptyChart message="Create sales orders to see trend" />
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={salesTrend}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F0" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontFamily: 'DM Sans', fontSize: 12, fill: '#BBB' }} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="left"  tick={{ fontFamily: 'DM Sans', fontSize: 11, fill: '#BBB' }} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="right" orientation="right"
+                    tickFormatter={v => v >= 1000 ? `₹${v/1000}K` : `₹${v}`}
+                    tick={{ fontFamily: 'DM Sans', fontSize: 11, fill: '#BBB' }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line yAxisId="left"  type="monotone" dataKey="orders" name="Orders"
+                    stroke="#0A0A0A" strokeWidth={2.5}
+                    dot={{ r: 4, fill: '#0A0A0A', strokeWidth: 0 }}
+                    activeDot={{ r: 7, fill: '#FFD966' }} />
+                  <Line yAxisId="right" type="monotone" dataKey="value" name="Value"
+                    stroke="#FFD966" strokeWidth={2.5}
+                    dot={{ r: 4, fill: '#FFD966', strokeWidth: 0 }}
+                    activeDot={{ r: 7, fill: '#0A0A0A' }}
+                    strokeDasharray="6 3" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+
+          {/* Top Products */}
+          <ChartCard>
+            <SectionHeader title="🏆 Top Selling Products" subtitle="By units sold across all orders" />
+            {!topProducts?.length ? (
+              <EmptyChart message="Add sales orders to see top products" />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                <div style={{ flexShrink: 0 }}>
+                  <ResponsiveContainer width={160} height={180}>
+                    <PieChart>
+                      <Pie data={topProducts} cx="50%" cy="50%"
+                        innerRadius={46} outerRadius={76}
+                        dataKey="quantity" paddingAngle={4}>
+                        {topProducts.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} strokeWidth={0} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(v, n) => [`${v} units`, n]}
+                        contentStyle={{ fontFamily: 'DM Sans', fontSize: 12, borderRadius: 10, border: '1.5px solid #E8E8E3' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 180, overflowY: 'auto' }}>
+                  {topProducts.map((p, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: 3, flexShrink: 0, background: COLORS[i % COLORS.length] }}></div>
+                        <span style={{ fontFamily: 'DM Sans', fontSize: 12, color: '#555', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                      </div>
+                      <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 12, color: '#0A0A0A', flexShrink: 0, background: '#F4F4F0', padding: '2px 8px', borderRadius: 6 }}>
+                        {p.quantity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </ChartCard>
         </div>
       </div>
 
       {/* ── Quick Actions ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <SectionHeader title="⚡ Quick Actions" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { icon: '🧾', label: 'New Invoice',      href: '/accounting' },
-            { icon: '📦', label: 'Add Product',      href: '/inventory' },
-            { icon: '👤', label: 'Add Customer',     href: '/crm' },
-            { icon: '👥', label: 'Add Employee',     href: '/hr' },
-            { icon: '💸', label: 'Log Expense',      href: '/accounting' },
-            { icon: '🛒', label: 'New Sales Order',  href: '/crm' },
-            { icon: '📋', label: 'Process Payroll',  href: '/hr' },
-            { icon: '📊', label: 'View Reports',     href: '/accounting' },
-          ].map(action => (
-            <a key={action.label} href={action.href}
-              className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-blue-50 hover:border-blue-200 transition-all group cursor-pointer">
-              <span className="text-xl">{action.icon}</span>
-              <span className="text-sm font-medium text-gray-600 group-hover:text-blue-600">{action.label}</span>
-            </a>
-          ))}
-        </div>
+      <div className="dash-section" style={{ animationDelay: '0.25s', marginBottom: 28 }}>
+        <ChartCard>
+          <SectionHeader title="⚡ Quick Actions" subtitle="Jump directly to key tasks" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+            {[
+              { icon: '🧾', label: 'New Invoice',     href: '/accounting' },
+              { icon: '📦', label: 'Add Product',     href: '/inventory' },
+              { icon: '👤', label: 'Add Customer',    href: '/crm' },
+              { icon: '👥', label: 'Add Employee',    href: '/hr' },
+              { icon: '💸', label: 'Log Expense',     href: '/accounting' },
+              { icon: '🛒', label: 'New Sales Order', href: '/crm' },
+              { icon: '📋', label: 'Process Payroll', href: '/hr' },
+              { icon: '📊', label: 'View Reports',    href: '/accounting' },
+            ].map((a, i) => (
+              <a key={i} href={a.href} className="quick-action-btn" style={{ animationDelay: `${i * 30}ms` }}>
+                <div className="qa-icon-wrap" style={{ width: 36, height: 36, background: '#F4F4F0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0, transition: 'background 0.18s' }}>
+                  {a.icon}
+                </div>
+                <span className="qa-label" style={{ fontFamily: 'DM Sans', fontWeight: 500, fontSize: 13, color: '#444', transition: 'color 0.18s' }}>
+                  {a.label}
+                </span>
+              </a>
+            ))}
+          </div>
+        </ChartCard>
       </div>
 
-      {/* ── Stock Alerts ── */}
+      {/* ── Alerts ── */}
       {inv.lowStockCount > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-start gap-4">
-          <div className="text-3xl">⚠️</div>
-          <div className="flex-1">
-            <p className="font-bold text-red-700">Low Stock Alert</p>
-            <p className="text-sm text-red-500 mt-1">
-              {inv.lowStockCount} product{inv.lowStockCount > 1 ? 's are' : ' is'} below reorder level.
-              Go to Inventory → Stock to review.
+        <div className="alert-card" style={{ background: '#FFF8F8', border: '2px solid #FECACA', animationDelay: '0.3s', marginBottom: 16 }}>
+          <div style={{ width: 44, height: 44, background: '#DC2626', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>⚠️</div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 14, color: '#991B1B', marginBottom: 4 }}>Low Stock Alert</p>
+            <p style={{ fontFamily: 'DM Sans', fontSize: 13, color: '#EF4444', lineHeight: 1.5 }}>
+              {inv.lowStockCount} product{inv.lowStockCount > 1 ? 's are' : ' is'} below reorder level. Restock soon to avoid order failures.
             </p>
           </div>
-          <a href="/inventory"
-            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 flex-shrink-0">
-            View Stock
+          <a href="/inventory" className="alert-btn" style={{ background: '#DC2626', color: 'white' }}>
+            View Stock →
           </a>
         </div>
       )}
 
-      {/* ── Overdue Alert ── */}
       {ac.overdueCount > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 flex items-start gap-4">
-          <div className="text-3xl">🔴</div>
-          <div className="flex-1">
-            <p className="font-bold text-orange-700">Overdue Invoices</p>
-            <p className="text-sm text-orange-500 mt-1">
-              {ac.overdueCount} invoice{ac.overdueCount > 1 ? 's are' : ' is'} overdue.
-              Go to Accounting → Invoices to follow up.
+        <div className="alert-card" style={{ background: '#FFFBEB', border: '2px solid #FDE68A', animationDelay: '0.35s', marginBottom: 16 }}>
+          <div style={{ width: 44, height: 44, background: '#FF6B35', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🔴</div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 14, color: '#92400E', marginBottom: 4 }}>Overdue Invoices</p>
+            <p style={{ fontFamily: 'DM Sans', fontSize: 13, color: '#D97706', lineHeight: 1.5 }}>
+              {ac.overdueCount} invoice{ac.overdueCount > 1 ? 's are' : ' is'} past due date. Follow up with customers immediately.
             </p>
           </div>
-          <a href="/accounting"
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 flex-shrink-0">
-            View Invoices
+          <a href="/accounting" className="alert-btn" style={{ background: '#FF6B35', color: 'white' }}>
+            View Invoices →
           </a>
         </div>
       )}
