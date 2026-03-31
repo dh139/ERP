@@ -20,10 +20,13 @@ connectDB();
 const app = express();
 
 app.use(helmet());
-app.use(cors({  origin: [
+app.use(cors({
+  origin: [
     "http://localhost:5173",
-    "https://nexus-beta-lemon-95.vercel.app/"
-  ], credentials: true }));
+    "https://nexus-beta-lemon-95.vercel.app"
+  ],
+  credentials: true
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 
